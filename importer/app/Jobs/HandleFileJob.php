@@ -9,11 +9,11 @@ use Throwable;
 use SimpleXMLElement;
 use Illuminate\Support\Facades\File;
 
+ini_set('memory_limit', '8G');
+
 class HandleFileJob implements ShouldQueue
 {
     use Queueable;
-
-    public $tries = 1;
 
     protected string $filePath;
     protected string $modelClassName;
@@ -32,17 +32,18 @@ class HandleFileJob implements ShouldQueue
 
     public function handle(): void
     {
-        $xmlString = File::get($this->filePath);
-        $xml = new SimpleXMLElement($xmlString);
-        $this->processXml($xml);
-    }
+        $xmlReader = new \XMLReader();
+        $xmlReader->open($this->filePath);
 
-    protected function processXml(SimpleXMLElement $xml): void
-    {
-        foreach ($xml->{$this->xmlProperty} as $item) {
-            $data = $this->modelClassName::parseData($item);
-            UpdateOrCreateJob::dispatch($this->modelClassName, $data);
+        while ($xmlReader->read()) {
+            if ($xmlReader->nodeType == \XMLReader::ELEMENT && $xmlReader->localName == $this->xmlProperty) {
+                $item = new SimpleXMLElement($xmlReader->readOuterXML());
+                $data = $this->modelClassName::parseData($item);
+                UpdateOrCreateJob::dispatch($this->modelClassName, $data);
+            }
         }
+
+        $xmlReader->close();
     }
 
     public function failed(Throwable $e): void

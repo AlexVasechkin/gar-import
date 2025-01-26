@@ -39,7 +39,7 @@ class TestCommand extends Command
                 // Seeders\OperationTypesSeeder::class,
                 // Seeders\ParamTypesSeeder::class,
                 // Seeders\RoomTypesSeeder::class,
-                // Seeders\AddressObjectsSeeder::class,
+                Seeders\AddressObjectsSeeder::class,
                 // Seeders\AddressObjectDivisionSeeder::class,
                 // Seeders\AddressObjectParametersSeeder::class,
                 // Seeders\AdmHierarchySeeder::class,
@@ -54,7 +54,7 @@ class TestCommand extends Command
                 // Seeders\RoomParametersSeeder::class,
                 // Seeders\SteadsSeeder::class,
                 // Seeders\SteadParametersSeeder::class,
-                Seeders\MunHierarchySeeder::class,
+                // Seeders\MunHierarchySeeder::class,
             ];
 
             foreach ($seeders as $seeder) {
