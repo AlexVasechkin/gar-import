@@ -2,14 +2,12 @@
 
 namespace App\Jobs;
 
+use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use SimpleXMLElement;
-use Illuminate\Support\Facades\File;
-
-ini_set('memory_limit', '8G');
 
 class HandleFileJob implements ShouldQueue
 {

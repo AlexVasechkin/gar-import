@@ -205,7 +205,7 @@ return [
             'queue' => ['files'],
             'balance' => 'simple',
             'processes' => 1,
-            'memory' => 8192,
+            'memory' => 4096,
             'tries' => 1,
             'timeout' => 60 * 60,
             'nice' => 0,
