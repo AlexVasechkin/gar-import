@@ -16,7 +16,8 @@ class MunHierarchyCacheItem extends Model
     protected $fillable = [
         'id',
         'name',
-        'address'
+        'address',
+        'last_address_object_id'
     ];
 
     public function munHierarchyItem(): BelongsTo
@@ -27,5 +28,15 @@ class MunHierarchyCacheItem extends Model
     public function getMunHierarchyItem(): ?MunHierarchyItem
     {
         return $this->munHierarchyItem;
+    }
+
+    public function lastAddressObject(): BelongsTo
+    {
+        return $this->belongsTo(AddressObject::class, 'last_address_object_id', 'id');
+    }
+
+    public function getLastAddressObject(): ?AddressObject
+    {
+        return $this->lastAddressObject;
     }
 }

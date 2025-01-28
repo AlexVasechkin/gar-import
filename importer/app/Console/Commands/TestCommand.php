@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ProcessAddressJob;
 use App\Models\AddressObject;
 use App\Models\MunHierarchyCacheItem;
 use App\Models\MunHierarchyItem;
@@ -32,24 +31,30 @@ class TestCommand extends Command
     public function handle()
     {
         try {
-            $name = 'mo';
-
             MunHierarchyCacheItem::query()
-                ->where('name', $name)
-                ->whereNull('address')
-                ->select(['id', 'name'])
-                ->chunk(50, function ($items) {
-                    /** @var MunHierarchyCacheItem $item */
-                    foreach ($items as $item) {
-                        ProcessAddressJob::dispatch($item->id, $item->name);
+                ->select(['id', 'last_address_object_id'])
+                ->get()
+                ->groupBy('last_address_object_id')
+                ->map(function ($items) {
+                    return $items->pluck('id');
+                })
+                ->each(function ($idList) {
+                    $hItems = MunHierarchyItem::query()
+                        ->whereIn('id', $idList->toArray())
+                        ->orderByDesc('is_active')
+                        ->orderByDesc('update_date')
+                        ->get();
+
+                    if ($hItems->count() > 0) {
+                        $hItems->shift();
+                        MunHierarchyCacheItem::destroy($hItems->pluck('id')->toArray());
                     }
                 });
-
         } catch (Throwable $e) {
-            Log::error(implode(PHP_EOL, [
+            Log::error(PHP_EOL, [
                 $e->getMessage(),
                 $e->getTraceAsString()
-            ]));
+            ]);
         }
     }
 }
