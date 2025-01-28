@@ -45,4 +45,9 @@ class MunHierarchyItem extends Model
             ]
         ];
     }
+
+    public function getPathComponents(): array
+    {
+        return explode('.', $this->path ?? '');
+    }
 }

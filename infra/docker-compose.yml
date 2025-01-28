@@ -1,21 +1,21 @@
 version: '3.8'
 
 services:
-  gar_postgres:
-    image: postgres:16
-    container_name: gar_postgres
-    command: postgres -c shared_buffers=512MB -c max_connections=1100
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - gar_postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    networks:
-      - gar-network
+  # gar_postgres:
+  #   image: postgres:16
+  #   container_name: gar_postgres
+  #   command: postgres -c shared_buffers=512MB -c max_connections=1100
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: postgres
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - gar_postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - gar-network
 
   gar_redis:
     image: redis:latest
@@ -26,8 +26,8 @@ services:
     networks:
       - gar-network
 
-volumes:
-  gar_postgres_data:
+# volumes:
+#   gar_postgres_data:
 
 networks:
   gar-network:
