@@ -166,7 +166,7 @@ return [
     |
     */
 
-    'memory_limit' => 64,
+    'memory_limit' => 512,
 
     /*
     |--------------------------------------------------------------------------
@@ -184,10 +184,10 @@ return [
             'connection' => 'redis',
             'queue' => ['default'],
             'balance' => 'simple',
-            // 'processes' => 180,
-            'processes' => 10,
+            'processes' => 130,
+            // 'processes' => 10,
             'memory' => 128,
-            // 'tries' => 1,
+            'tries' => 1,
             'timeout' => 30,
             'nice' => 0,
         ],
@@ -197,7 +197,7 @@ return [
             'balance' => 'simple',
             'processes' => 2,
             'memory' => 1024,
-            // 'tries' => 1,
+            'tries' => 1,
             'timeout' => 60,
             'nice' => 0,
         ],
@@ -207,7 +207,7 @@ return [
             'balance' => 'simple',
             'processes' => 2,
             'memory' => 4096,
-            // 'tries' => 1,
+            'tries' => 1,
             'timeout' => 60 * 60,
             'nice' => 0,
         ],
@@ -215,9 +215,9 @@ return [
             'connection' => 'redis',
             'queue' => ['address'],
             'balance' => 'simple',
-            'processes' => 180,
+            'processes' => 30,
             'memory' => 128,
-            // 'tries' => 1,
+            'tries' => 1,
             'timeout' => 60,
             'nice' => 0,
         ],

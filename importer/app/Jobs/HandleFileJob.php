@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +15,8 @@ class HandleFileJob implements ShouldQueue
     protected string $filePath;
     protected string $modelClassName;
     protected string $xmlProperty;
+
+    public $tries = 1;
 
     public function __construct(
         string $filePath,

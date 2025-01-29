@@ -14,6 +14,8 @@ class UpdateOrCreateJob implements ShouldQueue
     protected string $className;
     protected array $data;
 
+    public $tries = 1;
+
     /**
      * Create a new job instance.
      */

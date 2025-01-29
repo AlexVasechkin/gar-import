@@ -27,7 +27,7 @@ class ExportToCSVCommand extends Command
     {
         $file = fopen(storage_path($fileName), 'a');
         foreach ($data as $row) {
-            fputcsv($file, $row);
+            fputcsv($file, $row, ';'); // Указываем кавычки для обработки
         }
         fclose($file);
     }
@@ -43,7 +43,7 @@ class ExportToCSVCommand extends Command
             if (file_exists(storage_path($fileName))) {
                 throw new \RuntimeException("Файл уже существует: $fileName");
             }
-            $header = ['name', 'type_name'];
+            $header = ['type_name', 'name', 'address'];
             $this->addToCSV([$header], $fileName);
 
             MunHierarchyCacheItem::with('lastAddressObject')
@@ -52,9 +52,9 @@ class ExportToCSVCommand extends Command
                     foreach ($items as $item) {
                         if ($item->lastAddressObject) {
                             $csvData[] = [
-                                'address' => $item?->address ?? '',
-                                'name' => str_replace('"', '', $item->getLastAddressObject()?->name ?? ''),
                                 'type_name' => $item->getLastAddressObject()?->type_name ?? '',
+                                'name' => $item->getLastAddressObject()?->name ?? '',
+                                'address' => $item?->address ?? '',
                             ];
                         }
                     }
