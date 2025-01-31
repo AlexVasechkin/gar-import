@@ -38,7 +38,9 @@ class HandleFileJob implements ShouldQueue
             if ($xmlReader->nodeType == \XMLReader::ELEMENT && $xmlReader->localName == $this->xmlProperty) {
                 $item = new SimpleXMLElement($xmlReader->readOuterXML());
                 $data = $this->modelClassName::parseData($item);
-                UpdateOrCreateJob::dispatch($this->modelClassName, $data);
+                if ($this->modelClassName::isDataSuccess($data)) {
+                    UpdateOrCreateJob::dispatch($this->modelClassName, $data);
+                }
             }
         }
 

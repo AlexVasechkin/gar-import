@@ -49,12 +49,12 @@ abstract class RecursiveImportSeederPrototype extends Seeder
             return;
         }
         // $files = [$files[0]];
-        foreach ($files as $fn) {
-            file_put_contents(storage_path('names.txt'), $fn . PHP_EOL, FILE_APPEND);
-        }
-
-        // foreach ($files as $filePath) {
-        //     HandleFileJob::dispatch($filePath, $this->modelClassName, $this->xmlProperty);
+        // foreach ($files as $fn) {
+        //     file_put_contents(storage_path('names.txt'), $fn . PHP_EOL, FILE_APPEND);
         // }
+
+        foreach ($files as $filePath) {
+            HandleFileJob::dispatch($filePath, $this->modelClassName, $this->xmlProperty);
+        }
     }
 }

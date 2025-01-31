@@ -19,16 +19,18 @@ class FillAddressLastObjectsCommand extends Command
         try {
             $name = $this->argument('name');
 
-            MunHierarchyCacheItem::query()
+            $idList = MunHierarchyCacheItem::query()
                 ->where('name', $name)
                 ->whereNull('last_address_object_id')
-                ->select(['id', 'name'])
-                ->chunk(50, function ($items) {
-                    /** @var MunHierarchyCacheItem $item */
-                    foreach ($items as $item) {
-                        FillAddressLastObjectJob::dispatch($item->id, $item->name);
-                    }
-                });
+                ->select(['id'])
+                ->pluck('id')
+                ->toArray()
+            ;
+
+            foreach ($idList as $id) {
+                FillAddressLastObjectJob::dispatch($id, $name);
+            }
+
         } catch (Throwable $e) {
             Log::error(PHP_EOL, [
                 $e->getMessage(),

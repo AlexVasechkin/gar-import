@@ -46,6 +46,13 @@ class MunHierarchyItem extends Model
         ];
     }
 
+    public static function isDataSuccess(array $data): bool
+    {
+        $payload = $data[1] ?? [];
+        $path = $payload['PATH'] ?? '';
+        return preg_match('/^(807356\.|1405113\.)/', $path);
+    }
+
     public function getPathComponents(): array
     {
         return explode('.', $this->path ?? '');

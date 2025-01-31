@@ -39,7 +39,7 @@ class StartImportCommand extends Command
                 // Seeders\OperationTypesSeeder::class,
                 // Seeders\ParamTypesSeeder::class,
                 // Seeders\RoomTypesSeeder::class,
-                Seeders\AddressObjectsSeeder::class,
+                // Seeders\AddressObjectsSeeder::class,
                 // Seeders\AddressObjectDivisionSeeder::class,
                 // Seeders\AddressObjectParametersSeeder::class,
                 // Seeders\AdmHierarchySeeder::class,

@@ -24,4 +24,28 @@ class AddressObjectType extends Model
     ];
 
     public $timestamps = true;
+
+    public static function parseData($item): array
+    {
+        return [
+            ['id' => (int) $item['ID']],
+            [
+                'level' => (int) $item['LEVEL'],
+                'name' => (string) $item['NAME'],
+                'shortname' => (string) $item['SHORTNAME'], 
+                'desc' => (string) $item['DESC'],
+                'is_active' => (string) $item['ISACTIVE'] === 'true',
+                'update_date' => (string) $item['UPDATEDATE'],
+                'start_date' => (string) $item['STARTDATE'],
+                'end_date' => (string) $item['ENDDATE'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ];
+    }
+
+    public static function isDataSuccess(): bool
+    {
+        return true;
+    }
 }
