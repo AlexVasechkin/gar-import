@@ -35,6 +35,9 @@ class ProcessAddressesCommand extends Command
                 }
 
                 $page++;
+
+                $this->info(sprintf('mem: %s', round(memory_get_usage() / 1024 / 1024, 2)));
+
             } while (!$items->isEmpty());
         } catch (Throwable $e) {
             Log::error(implode(PHP_EOL, [

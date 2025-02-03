@@ -2,15 +2,17 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\IndexAddressObjectJob;
 use App\Jobs\UpdateOrCreateJob;
 use App\Models\MunHierarchyItem;
+use App\Services\ElasticSearchService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class TestCommand extends Command
 {
-    protected $signature = 'app:test {id}';
+    protected $signature = 'app:test';
 
     protected $description = 'Command description';
 
@@ -45,7 +47,7 @@ class TestCommand extends Command
         }
     }
 
-    public function handle()
+    public function handle(ElasticSearchService $es)
     {
         $data = "/media/user/ADATA/gar/40/AS_MUN_HIERARCHY_20250120_c512ff6e-2162-4f2a-a14b-acd3cb19f1d7.XML
 /media/user/ADATA/gar/50/AS_MUN_HIERARCHY_20250120_39100bc0-3d10-4e42-a8ce-81e99d425157.XML
@@ -53,11 +55,13 @@ class TestCommand extends Command
         $files = explode(PHP_EOL, $data);
 
         try {
-            $id = intval($this->argument('id'));
-            $fileName = $files[$id];
-            // foreach ($files as $fileName) {
-            $this->handleFile($fileName);
-            // }
+            // $client = $es->getClient();
+            // dd($client->info());
+            $j = new IndexAddressObjectJob(1);
+            $j->handle($es);
+            // $id = intval($this->argument('id'));
+            // $fileName = $files[$id];
+            // $this->handleFile($fileName);
 
         } catch (Throwable $e) {
             $m = implode(PHP_EOL, [
