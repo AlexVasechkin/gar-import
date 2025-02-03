@@ -7,6 +7,7 @@ use Elastic\Elasticsearch;
 class ElasticSearchService
 {
     public const INDEX_ADDRESS_OBJECTS = 'address_objects';
+    public const INDEX_ADDRESS_OBJECT_TYPES = 'address_object_types';
 
     protected $client;
 

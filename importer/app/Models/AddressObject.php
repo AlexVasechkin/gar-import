@@ -24,6 +24,8 @@ class AddressObject extends Model
         'end_date',
         'is_actual',
         'is_active',
+        'index_sent_at',
+        'index_completed_at'
     ];
 
     protected $casts = [
@@ -32,6 +34,8 @@ class AddressObject extends Model
         'update_date' => 'date',
         'start_date' => 'date',
         'end_date' => 'date',
+        'index_sent_at' => 'datetime',
+        'index_completed_at' => 'datetime'
     ];
 
     // <OBJECT ID="1954863" OBJECTID="104741782" OBJECTGUID="7eb3b86b-00ca-4108-9e35-4e13837a4f5f" CHANGEID="283914940" NAME="Восточная" TYPENAME="тер." LEVEL="7" OPERTYPEID="10" PREVID="0" NEXTID="0" UPDATEDATE="2022-06-16" STARTDATE="2022-06-16" ENDDATE="2079-06-06" ISACTUAL="1" ISACTIVE="1" />

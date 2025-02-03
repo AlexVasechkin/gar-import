@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\IndexAddressObjectJob;
 use App\Jobs\UpdateOrCreateJob;
 use App\Models\MunHierarchyItem;
+use App\Services\AddressAnalyzerService;
 use App\Services\ElasticSearchService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +47,7 @@ class TestCommand extends Command
         }
     }
 
-    public function handle(ElasticSearchService $es)
+    public function handle(ElasticSearchService $es, AddressAnalyzerService $addressService)
     {
         $data = "/media/user/ADATA/gar/40/AS_MUN_HIERARCHY_20250120_c512ff6e-2162-4f2a-a14b-acd3cb19f1d7.XML
 /media/user/ADATA/gar/50/AS_MUN_HIERARCHY_20250120_39100bc0-3d10-4e42-a8ce-81e99d425157.XML
@@ -57,8 +57,24 @@ class TestCommand extends Command
         try {
             // $client = $es->getClient();
             // dd($client->info());
-            $j = new IndexAddressObjectJob(1);
-            $j->handle($es);
+            // $j = new IndexAddressObjectJob(1);
+            // $response = $es->getClient()->count(['index' => $es::INDEX_ADDRESS_OBJECT_TYPES]);
+            // $this->info($response->asString());
+            $messages = [
+'Здравствуйте
+Днп зеленая миля 9/23
+Нет света уже 30 минут, во всем населённом пункте
+Он будет?',
+'В поселке нет света уже 3 часа!!! Достали. Ни детей искупать ни помыться'
+            ];
+            $message = $messages[1];
+            $tokens = $addressService->getTokens($message);
+            // dd($tokens);
+            $r = $addressService->searchAddressObjects(
+                $tokens
+            );
+            dd($r);
+            // $j->handle($es);
             // $id = intval($this->argument('id'));
             // $fileName = $files[$id];
             // $this->handleFile($fileName);

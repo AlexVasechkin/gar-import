@@ -2,14 +2,13 @@
 
 namespace App\Jobs;
 
-use App\Models\AddressObject;
+use App\Models\AddressObjectType;
 use App\Services\ElasticSearchService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Carbon;
 use RuntimeException;
 
-class IndexAddressObjectJob implements ShouldQueue
+class IndexAddressObjectTypeJob implements ShouldQueue
 {
     use Queueable;
 
@@ -25,30 +24,29 @@ class IndexAddressObjectJob implements ShouldQueue
 
     public function handle(ElasticSearchService $es): void
     {
-        $addressObject = AddressObject::query()
+        $entity = AddressObjectType::query()
             ->where('id', $this->id)
             ->firstOrFail()
         ;
 
         $client = $es->getClient();
 
+        $indexName = $es::INDEX_ADDRESS_OBJECT_TYPES;
+
         $params = [
-            'index' => $es::INDEX_ADDRESS_OBJECTS,
-            'id' => $addressObject->id,
+            'index' => $indexName,
+            'id' => $entity->id,
             'body' => [
-                'guid' => $addressObject->object_guid,
-                'objectId' => $addressObject->object_id,
-                'name' => $addressObject->name,
-                'type_name' => $addressObject->type_name,
-                'level' => $addressObject->level,
+                'level' => $entity->level,
+                'name' => $entity->name,
+                'shortname' => $entity->shortname,
             ],
         ];
 
         $response = $client->index($params);
 
         if (in_array($response->getStatusCode(), [200, 201])) {
-            $addressObject->index_completed_at = Carbon::now();
-            $addressObject->save();
+            
         } else {
             throw new RuntimeException(implode(PHP_EOL, [
                 "Ошибка при добавлении документа с ID {$this->id}",

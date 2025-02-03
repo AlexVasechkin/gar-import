@@ -6,6 +6,7 @@ use App\Jobs\IndexAddressObjectJob;
 use App\Models\AddressObject;
 use App\Services\ElasticSearchService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -31,7 +32,7 @@ class IndexAddressObjectsCommand extends Command
     public function handle(ElasticSearchService $es)
     {
         try {
-            $indexName = 'address_objects';
+            $indexName = $es::INDEX_ADDRESS_OBJECTS;
             $client = $es->getClient();
 
             // Проверяем, существует ли индекс
@@ -40,20 +41,18 @@ class IndexAddressObjectsCommand extends Command
                 return;
             }
 
-            $page = 0;
+            $limit = 500;
             do {
                 $items = AddressObject::query()
                     ->select(['id'])
-                    ->limit(500)
-                    ->offset($page * 500)
-                    ->get();
+                    ->where('index_sent_at', '1970-01-01 00:00:00')
+                    ->limit($limit)
+                    ->pluck('id')
+                    ->each(function(int $id) {
+                        IndexAddressObjectJob::dispatch($id);
+                    });
 
-                /** @var AddressObject $item */
-                foreach ($items as $item) {
-                    IndexAddressObjectJob::dispatch($item->id);
-                }
-
-                $page++;
+                AddressObject::whereIn('id', $items)->update(['index_sent_at' => Carbon::now()]);
 
                 $this->info(sprintf('mem: %s', round(memory_get_usage() / 1024 / 1024, 2)));
 
