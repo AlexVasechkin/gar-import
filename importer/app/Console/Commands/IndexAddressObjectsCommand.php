@@ -29,18 +29,9 @@ class IndexAddressObjectsCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(ElasticSearchService $es)
+    public function handle()
     {
         try {
-            $indexName = $es::INDEX_ADDRESS_OBJECTS;
-            $client = $es->getClient();
-
-            // Проверяем, существует ли индекс
-            if (!$client->indices()->exists(['index' => $indexName])->asBool()) {
-                echo "Индекс '$indexName' не существует. Создайте его.\n";
-                return;
-            }
-
             $limit = 500;
             do {
                 $items = AddressObject::query()

@@ -38,13 +38,29 @@ class AddressAnalyzerService
         return array_merge($filteredTokens, $pairedTokens);
     }
 
-    public function analyze(string $message): int
+    public function addNormilization(array &$dataSet): void
     {
-        $tokens = $this->getTokens($message);
+        if (count($dataSet) === 0) {
+            return;
+        }
 
-        $matches = $this->searchAddressObjects($tokens);
+        $max = ($dataSet[0] ?? [])['_score'];
 
-        return $this->calculateScore($matches);
+        foreach ($dataSet as &$item) {
+            $item['_score_norm'] = round(($item['_score'] ?? 0) / $max, 5);
+        }
+    }
+
+    public function analyze(array $tokens): array
+    {
+        $addressTypes = $this->searchAddressObjectTypes($tokens);
+
+        $addresses = $this->searchAddressObjects($tokens);
+
+        return [
+            'addressType' => count($addressTypes),
+            'address' => count($addresses)
+        ];
     }
 
     public function filterByScore(float $score, array $items): array
@@ -62,14 +78,20 @@ class AddressAnalyzerService
             $params['body']['query']['multi_match']['query'] = $token;
             $response = $this->client->search($params);
             if ($response['hits']['total']['value'] > 0) {
-                $matches = array_merge($matches, $this->filterByScore($score, $response['hits']['hits']));
+                $m = $this->filterByScore($score, $response['hits']['hits']);
+
+                usort($m, function ($a, $b) {
+                    return ($b['_score'] ?? 0) <=> ($a['_score'] ?? 0);
+                });
+
+                $matches[] = [
+                    'token' => $token,
+                    'data' => $m
+                ];
             }
         }
 
-        usort($matches, function ($a, $b) {
-            return ($b['_score'] ?? 0) <=> ($a['_score'] ?? 0);
-        });
-        return array_slice($matches, 0, 20);
+        return array_slice($matches, 0, 10);
     }
 
     public function searchAddressObjects(array $tokens): array
@@ -83,7 +105,7 @@ class AddressAnalyzerService
                     ],
                 ],
             ],
-        ]);
+        ], 5.0);
     }
 
     public function searchAddressObjectTypes(array $tokens): array
@@ -93,31 +115,86 @@ class AddressAnalyzerService
             'body' => [
                 'query' => [
                     'multi_match' => [
-                        'fields' => ['name', 'shortname'],
+                        'fields' => [
+                            'name',
+                            'shortname'
+                        ],
                     ],
                 ],
             ],
         ], 1.0);
     }
 
-    public function calculateScore(array $matches): int
+    /**
+     * Поиск составных частей адреса.
+     *
+     * @param array $tokens
+     * @return array
+     */
+    public function searchCompositeAddressParts(array $tokens): array
     {
-        $score = 0;
+        $results = [];
 
-        foreach ($matches as $matchGroup) {
-            foreach ($matchGroup as $match) {
-                $source = $match['_source'];
+        foreach ($tokens as $index => $token) {
+            $addressTypeMatches = $this->searchAddressObjectTypes([$token]);
 
-                // Увеличиваем счет за каждый найденный объект
-                $score += 1;
+            if (empty($addressTypeMatches)) {
+                continue;
+            }
 
-                // Дополнительные баллы за высокий уровень
-                if (isset($source['level']) && $source['level'] === 1) {
-                    $score += 2;
+            $bestMatch = $this->getBestMatch($addressTypeMatches);
+            if (!$bestMatch) {
+                continue;
+            }
+            dd($bestMatch);
+
+            $combinations = $this->generateTokenCombinations($tokens, $index);
+
+            $addressMatches = [];
+            foreach ($combinations as $combination) {
+                $matches = $this->searchAddressObjects([$combination]);
+                $filteredMatches = $this->filterByScore(1.0, $matches['data'] ?? []);
+                if (!empty($filteredMatches)) {
+                    $addressMatches[] = [
+                        'combination' => $combination,
+                        'matches' => $filteredMatches,
+                    ];
                 }
             }
+
+            $results[] = [
+                'token' => $token,
+                'best_address_type_match' => $bestMatch,
+                'address_matches' => $addressMatches,
+            ];
         }
 
-        return $score;
+        return $results;
+    }
+
+    protected function getBestMatch(array $matches): ?array
+    {
+        if (empty($matches)) {
+            return null;
+        }
+
+        usort($matches, function ($a, $b) {
+            return ($b['_score'] ?? 0) <=> ($a['_score'] ?? 0);
+        });
+
+        return $matches[0];
+    }
+
+    protected function generateTokenCombinations(array $tokens, int $startIndex): array
+    {
+        $combinations = [];
+        $maxWords = min(count($tokens) - $startIndex, 3); // Максимум 3 слова
+
+        for ($i = 1; $i <= $maxWords; $i++) {
+            $combination = implode(' ', array_slice($tokens, $startIndex + 1, $i));
+            $combinations[] = $combination;
+        }
+
+        return $combinations;
     }
 }

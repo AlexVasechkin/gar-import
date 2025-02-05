@@ -57,9 +57,9 @@ class TestCommand extends Command
         try {
             // $client = $es->getClient();
             // dd($client->info());
-            // $j = new IndexAddressObjectJob(1);
             // $response = $es->getClient()->count(['index' => $es::INDEX_ADDRESS_OBJECT_TYPES]);
             // $this->info($response->asString());
+
             $messages = [
 'Здравствуйте
 Днп зеленая миля 9/23
@@ -67,10 +67,10 @@ class TestCommand extends Command
 Он будет?',
 'В поселке нет света уже 3 часа!!! Достали. Ни детей искупать ни помыться'
             ];
-            $message = $messages[1];
+            $message = $messages[0];
             $tokens = $addressService->getTokens($message);
             // dd($tokens);
-            $r = $addressService->searchAddressObjects(
+            $r = $addressService->searchCompositeAddressParts(
                 $tokens
             );
             dd($r);
