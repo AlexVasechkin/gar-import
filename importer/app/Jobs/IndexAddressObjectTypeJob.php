@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\AddressObjectType;
 use App\Services\ElasticSearchService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -14,33 +13,24 @@ class IndexAddressObjectTypeJob implements ShouldQueue
 
     public $tries = 1;
 
-    private int $id;
+    private array $data;
 
-    public function __construct(int $id)
+    public function __construct(string $d)
     {
-        $this->id = $id;
+        $this->data = json_decode($d, true);
         $this->onQueue('default');
     }
 
     public function handle(ElasticSearchService $es): void
     {
-        $entity = AddressObjectType::query()
-            ->where('id', $this->id)
-            ->firstOrFail()
-        ;
-
         $client = $es->getClient();
 
         $indexName = $es::INDEX_ADDRESS_OBJECT_TYPES;
 
         $params = [
             'index' => $indexName,
-            'id' => $entity->id,
-            'body' => [
-                'level' => $entity->level,
-                'name' => $entity->name,
-                'shortname' => $entity->shortname,
-            ],
+            'id' => $this->data['id'],
+            'body' => $this->data,
         ];
 
         $response = $client->index($params);
@@ -49,7 +39,7 @@ class IndexAddressObjectTypeJob implements ShouldQueue
             
         } else {
             throw new RuntimeException(implode(PHP_EOL, [
-                "Ошибка при добавлении документа с ID {$this->id}",
+                "Ошибка при добавлении документа с ID {$this->data['id']}",
                 $response->getStatusCode(),
                 $response->getBody()->getContents()
             ]));

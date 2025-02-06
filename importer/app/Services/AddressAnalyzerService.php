@@ -116,8 +116,7 @@ class AddressAnalyzerService
                 'query' => [
                     'multi_match' => [
                         'fields' => [
-                            'name',
-                            'shortname'
+                            'name'
                         ],
                     ],
                 ],
@@ -125,12 +124,6 @@ class AddressAnalyzerService
         ], 1.0);
     }
 
-    /**
-     * Поиск составных частей адреса.
-     *
-     * @param array $tokens
-     * @return array
-     */
     public function searchCompositeAddressParts(array $tokens): array
     {
         $results = [];
@@ -146,14 +139,20 @@ class AddressAnalyzerService
             if (!$bestMatch) {
                 continue;
             }
-            dd($bestMatch);
 
             $combinations = $this->generateTokenCombinations($tokens, $index);
+            // dd($combinations);
+            $r = $this->searchAddressObjects($combinations);
+            dd($r);
 
             $addressMatches = [];
             foreach ($combinations as $combination) {
-                $matches = $this->searchAddressObjects([$combination]);
-                $filteredMatches = $this->filterByScore(1.0, $matches['data'] ?? []);
+                // $matches = $this->searchAddressObjects([$combination]);
+                $d = $matches['data'] ?? [];
+                if (!empty($d)) {
+                    dd($d);
+                }
+                $filteredMatches = $this->filterByScore(1.0, $d);
                 if (!empty($filteredMatches)) {
                     $addressMatches[] = [
                         'combination' => $combination,
