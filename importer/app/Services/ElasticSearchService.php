@@ -14,9 +14,9 @@ class ElasticSearchService
     public function getClient(): Elasticsearch\Client
     {
         if ($this->client === null) {
-            $protocol = env('ELASTICSEARCH_PROTOCOL', 'http'); // Получаем протокол из env файла
-            $host = env('ELASTICSEARCH_HOST', 'localhost'); // Получаем хост из env файла
-            $port = env('ELASTICSEARCH_PORT', '9200'); // Получаем порт из env файла
+            $protocol = env('ELASTICSEARCH_PROTOCOL', 'http');
+            $host = env('ELASTICSEARCH_HOST', 'localhost');
+            $port = env('ELASTICSEARCH_PORT', '9200');
             $this->client = Elasticsearch\ClientBuilder::create()
                 ->setHosts(["{$protocol}://{$host}:{$port}"])
                 ->setBasicAuthentication(

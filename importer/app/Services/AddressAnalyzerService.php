@@ -51,16 +51,34 @@ class AddressAnalyzerService
         }
     }
 
-    public function analyze(array $tokens): array
+    public function hasAddress(string $message): bool
     {
-        $addressTypes = $this->searchAddressObjectTypes($tokens);
+        $m = self::matchAddressObjectTypes($message);
+
+        if (count($m) === 0) {
+            return false;
+        }
+
+        $tokens = $this->getTokens($message);
 
         $addresses = $this->searchAddressObjects($tokens);
 
-        return [
-            'addressType' => count($addressTypes),
-            'address' => count($addresses)
-        ];
+        $r = [];
+        foreach ($addresses as $item) {
+            $r = array_merge($r, array_filter($item['data'], function(array $el) use ($m) {
+                for ($i = 0; $i < count($m); $i++) {
+                    if (mb_stripos(($el['_source'] ?? [])['type_name'] ?? '', $m[$i], encoding: 'UTF-8')) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }));
+        }
+
+        $r = array_values(array_unique(array_column($r, '_id')));
+
+        return count($r) > 0;
     }
 
     public function filterByScore(float $score, array $items): array
@@ -124,64 +142,75 @@ class AddressAnalyzerService
         ], 1.0);
     }
 
-    public function searchCompositeAddressParts(array $tokens): array
+    public static function getAddressObjectTypeList(): array
     {
-        $results = [];
-
-        foreach ($tokens as $index => $token) {
-            $addressTypeMatches = $this->searchAddressObjectTypes([$token]);
-
-            if (empty($addressTypeMatches)) {
-                continue;
-            }
-
-            $bestMatch = $this->getBestMatch($addressTypeMatches);
-            if (!$bestMatch) {
-                continue;
-            }
-
-            $combinations = $this->generateTokenCombinations($tokens, $index);
-            // dd($combinations);
-            $r = $this->searchAddressObjects($combinations);
-            dd($r);
-
-            $addressMatches = [];
-            foreach ($combinations as $combination) {
-                // $matches = $this->searchAddressObjects([$combination]);
-                $d = $matches['data'] ?? [];
-                if (!empty($d)) {
-                    dd($d);
-                }
-                $filteredMatches = $this->filterByScore(1.0, $d);
-                if (!empty($filteredMatches)) {
-                    $addressMatches[] = [
-                        'combination' => $combination,
-                        'matches' => $filteredMatches,
-                    ];
-                }
-            }
-
-            $results[] = [
-                'token' => $token,
-                'best_address_type_match' => $bestMatch,
-                'address_matches' => $addressMatches,
-            ];
-        }
-
-        return $results;
+        return [
+            'днп' => 'днп',
+            'днт' => 'днт',
+            'снт' => 'снт',
+            'кп' => 'пос',
+            'поселок' => 'п',
+            'п' => 'п',
+            'пос.' => 'п',
+            'поселке' => 'п',
+            'ул.' => 'ул',
+            'улица' => 'ул',
+            'улице' => 'ул',
+            'дом' => 'д',
+            'д' => 'д',
+            'доме' => 'д',
+            'шоссе' => 'ш',
+            'проспект' => 'пр-кт',
+            'район' => '',
+            'районе' => 'р-н',
+            'микрорайон' => 'мкр',
+            'г.о.' => 'г.о',
+            'г. о.' => 'г.о',
+            'го' => 'г.о',
+            'г.о' => 'г.о',
+            'городской округ' => 'г.о',
+            'область' => 'обл',
+            'обл' => 'обл',
+            'село' => 'с',
+            'селе' => 'c',
+            'с.' => 'с',
+            'пгт.' => 'пгт',
+        ];
     }
 
-    protected function getBestMatch(array $matches): ?array
+    public static function matchAddressObjectTypes(string $subject): array
     {
-        if (empty($matches)) {
-            return null;
+        $r = [];
+
+        foreach (array_keys(self::getAddressObjectTypeList()) as $target) {
+            $pattern = sprintf('/(?i)(\s|\,){1}%s(\s){1}/', $target);
+            preg_match($pattern, $subject, $matches);
+            if (count($matches) > 0) {
+                $q = array_values(
+                    array_map(fn(string $item) => trim($item),
+                        array_filter($matches,
+                            function(string $val) {
+                                return !empty(trim($val));
+                            }
+                        )
+                    )
+                );
+                if (count($q) > 0) {
+                    $r = array_merge($r, $q);
+                }
+            }
         }
 
-        usort($matches, function ($a, $b) {
-            return ($b['_score'] ?? 0) <=> ($a['_score'] ?? 0);
-        });
-
-        return $matches[0];
+        return array_values(
+            array_unique(
+                array_filter(
+                    array_map(function(string $entry) {
+                        return self::getAddressObjectTypeList()[$entry] ?? null;
+                    }, $r),
+                    fn(?string $item) => !empty($item)
+                )
+            )
+        );
     }
 
     protected function generateTokenCombinations(array $tokens, int $startIndex): array
