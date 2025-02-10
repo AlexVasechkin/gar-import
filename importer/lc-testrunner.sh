@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-./db_test_loc.sh
+# ./db_test_loc.sh
 
 #php vendor/bin/phpunit \
 # --no-configuration \

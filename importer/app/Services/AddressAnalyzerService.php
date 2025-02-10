@@ -53,6 +53,10 @@ class AddressAnalyzerService
 
     public function hasAddress(string $message): bool
     {
+        if (empty($message)) {
+            return false;
+        }
+
         $m = self::matchAddressObjectTypes($message);
 
         if (count($m) === 0) {
@@ -109,7 +113,7 @@ class AddressAnalyzerService
             }
         }
 
-        return array_slice($matches, 0, 10);
+        return array_slice($matches, 0, 20);
     }
 
     public function searchAddressObjects(array $tokens): array
@@ -123,7 +127,7 @@ class AddressAnalyzerService
                     ],
                 ],
             ],
-        ], 5.0);
+        ], 4.0);
     }
 
     public function searchAddressObjectTypes(array $tokens): array
@@ -161,6 +165,7 @@ class AddressAnalyzerService
             'доме' => 'д',
             'шоссе' => 'ш',
             'проспект' => 'пр-кт',
+            'проспекте' => 'пр-кт',
             'район' => '',
             'районе' => 'р-н',
             'микрорайон' => 'мкр',

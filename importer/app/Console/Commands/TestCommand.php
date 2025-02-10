@@ -60,20 +60,47 @@ class TestCommand extends Command
             // $response = $es->getClient()->count(['index' => $es::INDEX_ADDRESS_OBJECT_TYPES]);
             // $this->info($response->asString());
 
-            $messages = [
-'Здравствуйте
-Днп зеленая миля 9/23
-Нет света уже 30 минут, во всем населённом пункте
-Он будет?',
-'В поселке нет света уже 3 часа!!! Достали. Ни детей искупать ни помыться'
+            // $testData = json_decode(file_get_contents(storage_path('messages.json')), true);
+            $testData = [
+                [
+                    'isAddress' => true,
+                    'message' => 'На проспекте мира 35/1 нет света уже 2 часа!!! Сколько можно?'
+                ]
             ];
-            $message = $messages[0];
-            $tokens = $addressService->getTokens($message);
-            // dd($tokens);
-            $r = $addressService->searchCompositeAddressParts(
-                $tokens
-            );
-            dd($r);
+
+            $totalCount = count($testData);
+            $success = 0;
+            $totalEmpty = count(array_filter($testData, fn(array $item) => $item['isAddress'] === false));
+            $falseSuccess = 0;
+    
+            foreach ($testData as $row) {
+                $r = $addressService->hasAddress($row['message']);
+    
+                if ($row['isAddress'] === $r) {
+                    $success++;
+                }
+    
+                if ($row['isAddress'] === false && $row['isAddress'] === $r) {
+                    $falseSuccess++;
+                }
+            }
+    
+            echo sprintf('%s / %s', $success, $totalCount) . PHP_EOL;
+            echo sprintf('%s / %s', $falseSuccess, $totalEmpty) . PHP_EOL;
+//             $messages = [
+// 'Здравствуйте
+// Днп зеленая миля 9/23
+// Нет света уже 30 минут, во всем населённом пункте
+// Он будет?',
+// 'В поселке нет света уже 3 часа!!! Достали. Ни детей искупать ни помыться'
+//             ];
+//             $message = $messages[0];
+//             $tokens = $addressService->getTokens($message);
+//             // dd($tokens);
+//             $r = $addressService->hasAddress(
+//                 $message
+//             );
+//             dd($r);
             // $j->handle($es);
             // $id = intval($this->argument('id'));
             // $fileName = $files[$id];
